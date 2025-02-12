@@ -46,29 +46,56 @@ public class CalculateSales {
 		//指定したパスに存在する全てのファイル(または、ディレクトリ)の情報を格納します。
 		File[] files = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」").listFiles();
 
+		//先にファイルの情報を格納する List(ArrayList) を宣⾔します。
+		List<File> rcdFiles = new ArrayList<>();
+
 		for(int i = 0; i < files.length ; i++) {
-		files[i].getName();
+		//getName()で取り出したものをString型のfilenameとして定義する（格納先を用意してあげる）
+		String filename = files[i].getName();
 
 			//matches を使⽤してファイル名が「数字8桁.rcd」なのか判定します。
 		    //「数字8桁.rcd」に該当する正規表現構文を参考表から探す
-				if(files[i].matches("[0-9]{8}\"".+rcd$\")) {
-				    //trueの場合の処理
+				if(filename.matches("^[0-9]{8}.rcd$")) {
+					//trueの場合の処理
+					rcdFiles.add(files[i]);
+				}
+		}
 
-					//先にファイルの情報を格納する List(ArrayList) を宣⾔します。
-					List<File> rcdFiles = new ArrayList<>();
+		//処理内容 2-2
+		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
+				for(int j = 0; j < rcdFiles.size(); j++) {
 
-					for(int i = 0; i < files.length ; i++) {
-						if(files[i].matches) {
-					    //売上ファイルの条件に当てはまったものだけ、List(ArrayList) に追加します。
-							rcdFiles.add(files[i]);
-						}
-					}
+				//ファイルの読み込みは、処理内容1-1を参考にFileReaderやBufferedReaderを使う。
+				//rcdFilesには売上ファイルの情報(ファイル名やパス等)が格納されているため、rcdFilesからファイルの情報を取得してください。
+
+					BufferedReader br = null;
+
+					try {
+						//rcdFilesというArrayListの(j)番目を.getする、それのfilenameを.getNameする。.get(j)でｊ番目と指定しているから.getNameは空欄でOK)
+						File files1 = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」", rcdFiles.get(j).getName());
+						FileReader fr = new FileReader(files1);
+						br = new BufferedReader(fr);
+
+						String line;
+
+						while((line = br.readLine()) != null) {
+				//また、注意する点としては「売上ファイルは複数存在していること」と「ファイルの中身が支店定義ファイルとは異なる(カンマ区切りではない)こと」です。
+				//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
+			    //どちらもこの後の処理で必要となるため、売上ファイルの中身は新しいListを作成して保持しましょう。
+							List<File> SalesFiles = new ArrayList<>();
+							file.add()
 
 
-		    	}
 
+
+				}
 
 		}
+
+
+	   	}
+
+
 
 
 
