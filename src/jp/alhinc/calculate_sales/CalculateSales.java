@@ -88,7 +88,6 @@ public class CalculateSales {
 
 							SalesFiles.add(line);
 						}
-
 							//売上ファイルから読み込んだ支店コードと売上金額を新たなMapを使用して保持。
 							//売上ファイルから読み込んだ売上金額（SalesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
 							long fileSale = Long.parseLong(SalesFiles.get(1));
@@ -103,10 +102,8 @@ public class CalculateSales {
 						System.out.println(UNKNOWN_ERROR);
 						return;
 
-
 					}finally {
 				}
-
 	}
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
@@ -114,7 +111,6 @@ public class CalculateSales {
 		}
 
 	}
-
 
 	/**
 	 * 支店定義ファイル読み込み処理
@@ -144,10 +140,6 @@ public class CalculateSales {
 
 			    branchSales.put(items[0],0L);
 
-
-
-
-				System.out.println(line);
 			}
 
 		} catch(IOException e) {
@@ -187,15 +179,11 @@ public class CalculateSales {
 			FileWriter fw = new FileWriter(file);
 			bw = new BufferedWriter(fw);
 
-			//Write(引数：書き込む⽂字列)
-            //支店コードを入れたMapからKeyの⼀覧を取得してKeyの数だけ繰り返す
+            //支店コードを入れたMapからKeyの一覧を取得してKeyの数だけ繰り返す
 			for (String key : branchSales.keySet()) {
+				//write(書き込む文字列)
 				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
-
-
 				bw.newLine();
-
-				System.out.println();
 		    }
 
 		} catch(IOException e) {
@@ -212,10 +200,8 @@ public class CalculateSales {
 					return false;
 				}
 			}
-
-
-
 		}
 		return true;
 	}
+
 }
