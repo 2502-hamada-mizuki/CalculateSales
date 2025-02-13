@@ -1,8 +1,10 @@
 package jp.alhinc.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,13 +36,13 @@ public class CalculateSales {
 		Map<String, Long> branchSales = new HashMap<>();
 
 		// 支店定義ファイル読み込み処理
+		//if()内（readFileメソッド）がtrueだったら｛｝の処理を行う
 		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
+			//falseだったらreturnで処理を終了させる（次へ進む）
 			return;
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-
-
 
 		//listFilesを使⽤してfilesという配列に、
 		//指定したパスに存在する全てのファイル(または、ディレクトリ)の情報を格納します。
@@ -76,37 +78,43 @@ public class CalculateSales {
 						FileReader fr = new FileReader(files1);
 						br = new BufferedReader(fr);
 
+						//lineメソッドで読み込むものはString型と定義する（テキストファイルで保存したものは全てString型（支店コードも売上金額もString型になる））
 						String line;
+						//売上ファイルは複数存在している。売上ファイルの中身は新しいList（SalesFiles）を作成して保持。
+						//売上ファイルの1行目には支店コード、2行目には売上金額が入っている。1行ずつ読み込んで作成したリストに追加。
+						List<String> SalesFiles = new ArrayList<>();
 
 						while((line = br.readLine()) != null) {
-				//また、注意する点としては「売上ファイルは複数存在していること」と「ファイルの中身が支店定義ファイルとは異なる(カンマ区切りではない)こと」です。
-				//売上ファイルの1行目には支店コード、2行目には売上金額が入っています。
-			    //どちらもこの後の処理で必要となるため、売上ファイルの中身は新しいListを作成して保持しましょう。
-							List<File> SalesFiles = new ArrayList<>();
-							file.add()
+
+							SalesFiles.add(line);
+						}
+
+							//売上ファイルから読み込んだ支店コードと売上金額を新たなMapを使用して保持。
+							//売上ファイルから読み込んだ売上金額（SalesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
+							long fileSale = Long.parseLong(SalesFiles.get(1));
+							//読み込んだ売上⾦額を加算(合計はsaleAmount）
+							Long saleAmount = branchSales.get(SalesFiles.get(0))+ fileSale;
+
+							//加算した売上⾦額を既存Mapに追加
+							branchSales.put(SalesFiles.get(0),saleAmount);
 
 
+					} catch(IOException e) {
+						System.out.println(UNKNOWN_ERROR);
+						return;
 
 
+					}finally {
 				}
 
-		}
-
-
-	   	}
-
-
-
-
-
-
-
+	}
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
 		}
 
 	}
+
 
 	/**
 	 * 支店定義ファイル読み込み処理
@@ -121,7 +129,7 @@ public class CalculateSales {
 		BufferedReader br = null;
 
 		try {
-			File file = new File(path, fileName);
+			File file = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」","branch.lst");
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
@@ -172,7 +180,42 @@ public class CalculateSales {
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 
+		BufferedWriter bw = null;
+
+		try {
+			File file = new File(path,"branch.out" );
+			FileWriter fw = new FileWriter(file);
+			bw = new BufferedWriter(fw);
+
+			//Write(引数：書き込む⽂字列)
+            //支店コードを入れたMapからKeyの⼀覧を取得してKeyの数だけ繰り返す
+			for (String key : branchSales.keySet()) {
+				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+
+
+				bw.newLine();
+
+				System.out.println();
+		    }
+
+		} catch(IOException e) {
+			System.out.println(UNKNOWN_ERROR);
+			return false;
+		} finally {
+			// ファイルを開いている場合
+			if(bw != null) {
+				try {
+					// ファイルを閉じる
+					bw.close();
+				} catch(IOException e) {
+					System.out.println(UNKNOWN_ERROR);
+					return false;
+				}
+			}
+
+
+
+		}
 		return true;
 	}
-
 }
