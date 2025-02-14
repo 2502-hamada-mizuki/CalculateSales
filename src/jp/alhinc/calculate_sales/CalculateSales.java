@@ -41,70 +41,65 @@ public class CalculateSales {
 			//falseだったらreturnで処理を終了させる（次へ進む）
 			return;
 		}
+		// ※集計処理の作成
+		//listFilesを使用してfilesという配列に、指定したパスに存在する全てのファイル(または、ディレクトリ)の情報を格納します。
+		File[] files = new File(args[0]).listFiles();
 
-		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-
-		//listFilesを使⽤してfilesという配列に、
-		//指定したパスに存在する全てのファイル(または、ディレクトリ)の情報を格納します。
-		File[] files = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」").listFiles();
-
-		//先にファイルの情報を格納する List(ArrayList) を宣⾔します。
+		//先にファイルの情報を格納する List(ArrayList) を宣言します。
 		List<File> rcdFiles = new ArrayList<>();
-
 		for(int i = 0; i < files.length ; i++) {
 		//getName()で取り出したものをString型のfilenameとして定義する（格納先を用意してあげる）
-		String filename = files[i].getName();
+			String filename = files[i].getName();
 
 			//matches を使⽤してファイル名が「数字8桁.rcd」なのか判定します。
 		    //「数字8桁.rcd」に該当する正規表現構文を参考表から探す
-				if(filename.matches("^[0-9]{8}.rcd$")) {
+			if(filename.matches("^[0-9]{8}.rcd$")) {
 					//trueの場合の処理
-					rcdFiles.add(files[i]);
-				}
+				rcdFiles.add(files[i]);
+			}
 		}
-
-		//処理内容 2-2
 		//rcdFilesに複数の売上ファイルの情報を格納しているので、その数だけ繰り返します。
-				for(int j = 0; j < rcdFiles.size(); j++) {
+		for(int i = 0; i < rcdFiles.size(); i++) {
+		//ファイルの読み込みは、処理内容1-1を参考にFileReaderやBufferedReaderを使う。
+		//rcdFilesには売上ファイルの情報(ファイル名やパス等)が格納されているため、rcdFilesからファイルの情報を取得してください。
+			BufferedReader br = null;
 
-				//ファイルの読み込みは、処理内容1-1を参考にFileReaderやBufferedReaderを使う。
-				//rcdFilesには売上ファイルの情報(ファイル名やパス等)が格納されているため、rcdFilesからファイルの情報を取得してください。
+			try {
+			//rcdFilesというArrayListの(j)番目を.getする、それのfilenameを.getNameする。.get(i)でi番目と指定しているから.getNameは空欄でOK)
+			File rcdFile = new File(args[0], rcdFiles.get(i).getName());
+			FileReader fr = new FileReader(rcdFile);
+			br = new BufferedReader(fr);
 
-					BufferedReader br = null;
+			//lineメソッドで読み込むものはString型と定義する（テキストファイルで保存したものは全てString型（支店コードも売上金額もString型になる））
+			String line;
+			//売上ファイルは複数存在している。売上ファイルの中身は新しいList（salesFiles）を作成して保持。
+			//売上ファイルの1行目には支店コード、2行目には売上金額が入っている。1行ずつ読み込んで作成したリストに追加。
+			List<String> salesFiles = new ArrayList<>();
+			while((line = br.readLine()) != null) {
+				salesFiles.add(line);
+			}
+			//売上ファイルから読み込んだ支店コードと売上金額(fileSale)を新たなMapを使用して保持。
+			//売上ファイルから読み込んだ売上金額（salesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
+			long fileSale = Long.parseLong(salesFiles.get(1));
+			//読み込んだ売上金額を加算(合計はsaleAmount）
+			Long saleAmount = branchSales.get(salesFiles.get(0)) + fileSale;
+			//加算した売上金額を既存Mapに追加
+			branchSales.put(salesFiles.get(0), saleAmount);
 
+			} catch(IOException e) {
+				System.out.println(UNKNOWN_ERROR);
+				return;
+			}finally {
+				if(br != null) {
 					try {
-						//rcdFilesというArrayListの(j)番目を.getする、それのfilenameを.getNameする。.get(j)でｊ番目と指定しているから.getNameは空欄でOK)
-						File files1 = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」", rcdFiles.get(j).getName());
-						FileReader fr = new FileReader(files1);
-						br = new BufferedReader(fr);
-
-						//lineメソッドで読み込むものはString型と定義する（テキストファイルで保存したものは全てString型（支店コードも売上金額もString型になる））
-						String line;
-						//売上ファイルは複数存在している。売上ファイルの中身は新しいList（SalesFiles）を作成して保持。
-						//売上ファイルの1行目には支店コード、2行目には売上金額が入っている。1行ずつ読み込んで作成したリストに追加。
-						List<String> SalesFiles = new ArrayList<>();
-
-						while((line = br.readLine()) != null) {
-
-							SalesFiles.add(line);
-						}
-							//売上ファイルから読み込んだ支店コードと売上金額を新たなMapを使用して保持。
-							//売上ファイルから読み込んだ売上金額（SalesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
-							long fileSale = Long.parseLong(SalesFiles.get(1));
-							//読み込んだ売上⾦額を加算(合計はsaleAmount）
-							Long saleAmount = branchSales.get(SalesFiles.get(0))+ fileSale;
-
-							//加算した売上⾦額を既存Mapに追加
-							branchSales.put(SalesFiles.get(0),saleAmount);
-
-
+						br.close();
 					} catch(IOException e) {
 						System.out.println(UNKNOWN_ERROR);
 						return;
-
-					}finally {
+					}
 				}
-	}
+	        }
+		}
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
@@ -125,20 +120,19 @@ public class CalculateSales {
 		BufferedReader br = null;
 
 		try {
-			File file = new File("C:\\Users\\trainee1197\\プログラミング言語基礎課題「売上集計システム」","branch.lst");
+			File file = new File(path, fileName);
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
 			String line;
 			// 一行ずつ読み込む
 			while((line = br.readLine()) != null) {
-				// ※ここの読み込み処理を変更してください。(処理内容1-2)
+				// ※読み込み処理を変更
 				String[] items = line.split(",");
 
 			    //Mapに追加する2つの情報を putの引数として指定します。
-			    branchNames.put(items[0],items[1]);
-
-			    branchSales.put(items[0],0L);
+			    branchNames.put(items[0], items[1]);
+			    branchSales.put(items[0], 0L);
 
 			}
 
@@ -170,12 +164,12 @@ public class CalculateSales {
 	 * @return 書き込み可否
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
-		// ※ここに書き込み処理を作成してください。(処理内容3-1)
+		// ※書き込み処理
 
 		BufferedWriter bw = null;
 
 		try {
-			File file = new File(path,"branch.out" );
+			File file = new File(path, fileName);
 			FileWriter fw = new FileWriter(file);
 			bw = new BufferedWriter(fw);
 
