@@ -66,7 +66,6 @@ public class CalculateSales {
 		    //「数字8桁.rcd」に該当する正規表現構文を参考表から探す
 			//対象がファイルであるかどうかも確認する。
 			if(files[i].isFile() && filename.matches("^[0-9]{8}.rcd$")) {
-			    //trueの場合の処理
 				rcdFiles.add(files[i]);
 			}
 		}
@@ -77,74 +76,64 @@ public class CalculateSales {
 			BufferedReader br = null;
 
 			try {
-			//rcdFilesというArrayListの(j)番目を.getする、それのfilenameを.getNameする。.get(i)でi番目と指定しているから.getNameは空欄でOK)
-			File rcdFile = new File(args[0], rcdFiles.get(i).getName());
+				//rcdFilesというArrayListの(j)番目を.getする、それのfilenameを.getNameする。.get(i)でi番目と指定しているから.getNameは空欄でOK)
+				File rcdFile = new File(args[0], rcdFiles.get(i).getName());
 
-			//昇順にソートされた状態で読み込ませるために売上ファイルを保持しているListをソートする
-			Collections.sort(rcdFiles);
+				//昇順にソートされた状態で読み込ませるために売上ファイルを保持しているListをソートする
+				Collections.sort(rcdFiles);
 
-			//売上ファイルのファイル名が連番になっているか確認し、
-			//連番になっていない場合は「売上ファイル名が連番になっていません」を表示し、処理を終了する。
-			//2個ずつ確認するから回数は売上ファイルの数よりも1回少ない
-			for(int j = 0; j <rcdFiles.size() - 1; j++) {
-				int former = Integer.parseInt(rcdFiles.get(j).getName().substring(0, 8));
-				int latter = Integer.parseInt(rcdFiles.get(j + 1).getName().substring(0, 8));
+				//売上ファイルのファイル名が連番になっているか確認し、連番になっていない場合は「売上ファイル名が連番になっていません」を表示し、処理を終了する。
+				//2個ずつ確認するから回数は売上ファイルの数よりも1回少ない
+				for(int j = 0; j <rcdFiles.size() - 1; j++) {
+					int former = Integer.parseInt(rcdFiles.get(j).getName().substring(0, 8));
+					int latter = Integer.parseInt(rcdFiles.get(j + 1).getName().substring(0, 8));
 
-			      //比較する2つのファイル名の先頭から数字の8文字を切り出し、int型に変換します。
-				if((latter - former) != 1) {
-					System.out.println(FILE_NOT_CONSECUTIVE);
+					//比較する2つのファイル名の先頭から数字の8文字を切り出し、int型に変換します。
+					if((latter - former) != 1) {
+						System.out.println(FILE_NOT_CONSECUTIVE);
+						return;
+					}
+				}
+				FileReader fr = new FileReader(rcdFile);
+				br = new BufferedReader(fr);
+
+				//lineメソッドで読み込むものはString型と定義する（テキストファイルで保存したものは全てString型（支店コードも売上金額もString型になる））
+				String line;
+				//売上ファイルは複数存在している。売上ファイルの中身は新しいList（salesFiles）を作成して保持。
+				//売上ファイルの1行目には支店コード、2行目には売上金額が入っている。1行ずつ読み込んで作成したリストに追加。
+				List<String> salesFiles = new ArrayList<>();
+				while((line = br.readLine()) != null) {
+					salesFiles.add(line);
+				}
+				//売上ファイルの中身が2桁じゃない場合は、エラーメッセージ「<該当ファイル名>のフォーマットが不正です」と表示し処理を終了する。
+				if(salesFiles.size() != 2){
+					System.out.println(rcdFiles.get(i).getName() + FILE_BRANCH_NAME_INVALID_FORMAT);
 					return;
 				}
-			}
-			FileReader fr = new FileReader(rcdFile);
-			br = new BufferedReader(fr);
+				//支店に該当がなかった場合は、エラーメッセージ「<該当ファイル名>の支店コードが不正です」と表示し、処理を終了する。
+				if(!branchSales.containsKey(salesFiles.get(0))){
+					System.out.println(rcdFiles.get(i).getName() + FILE_BRANCH_CODE_INVALID_FORMAT);
+					return;
+				}
+				//売上金額が数字なのか確認し、数字でなかったらエラーメッセージをコンソールに表示する。
+				if(!salesFiles.get(1).matches("^[0-9]*$")){
+					System.out.println(UNKNOWN_ERROR);
+					return;
+				}
+				//売上ファイルから読み込んだ支店コードと売上金額(fileSale)を新たなMapを使用して保持。
+				//売上ファイルから読み込んだ売上金額（salesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
+				long fileSale = Long.parseLong(salesFiles.get(1));
 
-			//lineメソッドで読み込むものはString型と定義する（テキストファイルで保存したものは全てString型（支店コードも売上金額もString型になる））
-			String line;
-			//売上ファイルは複数存在している。売上ファイルの中身は新しいList（salesFiles）を作成して保持。
-			//売上ファイルの1行目には支店コード、2行目には売上金額が入っている。1行ずつ読み込んで作成したリストに追加。
-			List<String> salesFiles = new ArrayList<>();
-			while((line = br.readLine()) != null) {
-				salesFiles.add(line);
-			}
-			//売上ファイルの中身が2桁じゃない場合は、エラーメッセージ「<該当ファイル名>のフォーマットが不正です」と表示し処理を終了する。
-			if(salesFiles.size() != 2){
-				System.out.println(rcdFiles.get(i).getName() + FILE_BRANCH_NAME_INVALID_FORMAT);
-				return;
-			}
-			//支店に該当がなかった場合は、エラーメッセージ「<該当ファイル名>の支店コードが不正です」と表示し、処理を終了する。
-			if(!branchSales.containsKey(salesFiles.get(i))){
-				System.out.println(rcdFiles.get(i).getName() + FILE_BRANCH_CODE_INVALID_FORMAT);
-				return;
-			}
+				//読み込んだ売上金額を加算(合計はsaleAmount）
+				Long saleAmount = branchSales.get(salesFiles.get(0)) + fileSale;
 
-			//売上金額が数字なのか確認し、数字でなかったらエラーメッセージをコンソールに表示する。
-			if(!salesFiles.get(1).matches("^[0-9]*$")){
-				System.out.println(UNKNOWN_ERROR);
-				return;
-			}
-			//売上ファイルから読み込んだ支店コードと売上金額(fileSale)を新たなMapを使用して保持。
-			//売上ファイルから読み込んだ売上金額（salesFiles.get(1)）を既存Map（branchSales）に加算していくために、parseLongメソッドで型の変換を行う
-			long fileSale = Long.parseLong(salesFiles.get(1));
-
-
-
-			//読み込んだ売上金額を加算(合計はsaleAmount）
-			Long saleAmount = branchSales.get(salesFiles.get(0)) + fileSale;
-
-			//合計金額が10桁を超えた場合（売上金額が11桁以上の場合）、エラーメッセージをコンソールに表示し、処理を終了する。
-			if(saleAmount >= 10000000000L){
-				System.out.println(SALEAMOUNT_OVER_TEN_DIGIT);
-				return;
-			}
-
-
-			//加算した売上金額を既存Mapに追加
-			branchSales.put(salesFiles.get(0), saleAmount);
-
-
-
-
+				//合計金額が10桁を超えた場合（売上金額が11桁以上の場合）、エラーメッセージをコンソールに表示し、処理を終了する。
+				if(saleAmount >= 10000000000L){
+					System.out.println(SALEAMOUNT_OVER_TEN_DIGIT);
+					return;
+				}
+				//加算した売上金額を既存Mapに追加
+				branchSales.put(salesFiles.get(0), saleAmount);
 
 			} catch(IOException e) {
 				System.out.println(UNKNOWN_ERROR);
