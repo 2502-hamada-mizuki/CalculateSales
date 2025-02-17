@@ -40,8 +40,8 @@ public class CalculateSales {
 
 	//支店コードのフォーマット（数字3桁）
 	private static final String branchCode = "^[0-9]{3}$";
-	//商品コードのフォーマット（大小英数字8桁）;
-	private static final String commodityCode = "^[A-Za-z0-9]+$";
+	//商品コードのフォーマット（大小英数字8桁）
+	private static final String commodityCode = "^[A-Za-z0-9]{8}+$";
 
 	/**
 	 * メインメソッド
@@ -263,7 +263,7 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 書き込み可否
 	 */
-	private static boolean writeFile(String path, String fileName, Map<String, String> MapNames, Map<String, Long> MapSales) {
+	private static boolean writeFile(String path, String fileName, Map<String, String> mapNames, Map<String, Long> mapSales) {
 		BufferedWriter bw = null;
 
 		try {
@@ -272,9 +272,9 @@ public class CalculateSales {
 			bw = new BufferedWriter(fw);
 
             //支店コードを入れたMapからKeyの一覧を取得してKeyの数だけ繰り返す
-			for (String key : MapSales.keySet()) {
+			for (String key : mapSales.keySet()) {
 				//write(書き込む文字列)
-				bw.write(key + "," + MapNames.get(key) + "," + MapSales.get(key));
+				bw.write(key + "," + mapNames.get(key) + "," + mapSales.get(key));
 				bw.newLine();
 		    }
 
