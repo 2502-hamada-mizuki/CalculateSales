@@ -41,7 +41,7 @@ public class CalculateSales {
 	//支店コードのフォーマット（数字3桁）
 	private static final String branchCode = "^[0-9]{3}$";
 	//商品コードのフォーマット（大小英数字8桁）
-	private static final String commodityCode = "^[A-Za-z0-9]{8}+$";
+	private static final String commodityCode = "^[A-Za-z0-9]{8}$";
 
 	/**
 	 * メインメソッド
