@@ -29,15 +29,18 @@ public class CalculateSales {
 
 	// エラーメッセージ
 	private static final String UNKNOWN_ERROR = "予期せぬエラーが発生しました";
-	private static final String FILE_BRANCH_LST_NOT_EXIST = "支店定義ファイルが存在しません";
-	private static final String FILE_COMMODITY_LST_NOT_EXIST = "商品定義ファイルが存在しません";
-	private static final String FILE_BRANCH_LST_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
-	private static final String FILE_COMMODITY_LST_INVALID_FORMAT = "商品定義ファイルのフォーマットが不正です";
+	private static final String FILE_NOT_EXIST = "が存在しません";
+	private static final String FILE_INVALID_FORMAT = "のフォーマットが不正です";
 	private static final String FILE_NOT_CONSECUTIVE = "売上ファイル名が連番になっていません";
 	private static final String SALEAMOUNT_OVER_TEN_DIGIT = "合計金額が10桁を超えました";
 	private static final String FILE_BRANCH_CODE_INVALID_FORMAT ="の支店コードが不正です";
 	private static final String FILE_COMMODITY_CODE_INVALID_FORMAT ="の商品コードが不正です";
 	private static final String FILE_BRANCH_NAME_INVALID_FORMAT ="のフォーマットが不正です";
+
+	//支店コードのフォーマット（数字3桁）
+	private static final String branchCode = "^[0-9]{3}$";
+	//商品コードのフォーマット（大小英数字8桁）;
+	private static final String commodityCode = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8}$";
 
 	/**
 	 * メインメソッド
@@ -47,7 +50,7 @@ public class CalculateSales {
 	public static void main(String[] args) {
 
 		//コマンドライン引数が１つ設定されていなかったら、エラーメッセージをコンソールに表示する。
-	    if(args.length != 1){
+		if(args.length != 1){
 	    	System.out.println(UNKNOWN_ERROR);
 			return;
 	    }
@@ -61,21 +64,15 @@ public class CalculateSales {
 		//商品コードと売上金額を保持するMap
 		Map<String, Long> commoditySales = new HashMap<>();
 
-		//支店コードのフォーマット（数字3桁）
-		String branchCode = "^[0-9]{3}$";
-		//商品コードのフォーマット（大小英数字8桁）;
-		String commodityCode = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8}$";
-
-
 		// 支店定義ファイル読み込み処理
 		//if()内（readFileメソッド）がtrueだったら｛｝の処理を行う
-		if(!readFile(args[0], FILE_NAME_BRANCH_LST, FILE_BRANCH_LST_NOT_EXIST, branchNames, branchSales, branchCode, FILE_BRANCH_LST_INVALID_FORMAT)) {
+		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales, branchCode)) {
 			//falseだったらreturnで処理を終了させる（次へ進む）
 			return;
 		}
 
 		// 商品定義ファイル読み込み処理
-		if(!readFile(args[0], FILE_NAME_COMMODITY_LST, FILE_COMMODITY_LST_NOT_EXIST, commodityNames, commoditySales, commodityCode, FILE_COMMODITY_LST_INVALID_FORMAT)) {
+		if(!readFile(args[0], FILE_NAME_COMMODITY_LST, commodityNames, commoditySales, commodityCode)) {
 			return;
 		}
 
@@ -154,26 +151,22 @@ public class CalculateSales {
 				}
 
 				//売上ファイルから読み込んだ支店コードと売上金額(fileSale)を新たなMapを使用して保持。
-				//売上ファイルから読み込んだ売上金額（salesFiles.get(2)）を既存Map（branchSales）に加算するために、parseLongメソッドで型の変換を行う
+				//売上ファイルから読み込んだ売上金額（salesFiles.get(2)）を既存Mapに加算するために、parseLongメソッドで型の変換を行う
 				long fileSale = Long.parseLong(salesFiles.get(2));
-
-				//売上ファイルから読み込んだ商品コードと商品の売上金額(itemSale)を新たなMapを使用して保持。
-				//支店の合計金額、該当する商品の合計金額のそれぞれ加算する。
-				long itemSale = Long.parseLong(salesFiles.get(2));
 
 				//支店別の売上金額を加算(支店コードがKey。合計はsaleAmount）
 				Long saleAmount = branchSales.get(salesFiles.get(0)) + fileSale;
 				//商品別の売上金額を加算(商品コードがKey)
-				Long saleAmount_item = commoditySales.get(salesFiles.get(1)) + itemSale;
+				Long saleAmountItem = commoditySales.get(salesFiles.get(1)) + fileSale;
 
 				//合計金額が10桁を超えた場合（売上金額が11桁以上の場合）、エラーメッセージをコンソールに表示し、処理を終了する。
-				if(saleAmount >= 10000000000L && saleAmount_item >= 10000000000L){
+				if(saleAmount >= 10000000000L && saleAmountItem >= 10000000000L){
 					System.out.println(SALEAMOUNT_OVER_TEN_DIGIT);
 					return;
 				}
 				//加算した売上金額を既存Mapに追加
 				branchSales.put(salesFiles.get(0), saleAmount);
-				commoditySales.put(salesFiles.get(1), saleAmount_item);
+				commoditySales.put(salesFiles.get(1), saleAmountItem);
 
 			} catch(IOException e) {
 				System.out.println(UNKNOWN_ERROR);
@@ -210,14 +203,14 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 読み込み可否
 	 */
-	private static boolean readFile(String path, String fileName, String FileERROR, Map<String, String> MapNames, Map<String, Long> MapSales, String Code, String CodeERROR) {
+	private static boolean readFile(String path, String fileName, Map<String, String> mapNames, Map<String, Long> mapSales, String code) {
 		BufferedReader br = null;
 
 		try {
 			File file = new File(path, fileName);
 			//対象ファイルが存在しない場合は、エラーメッセージ「○○ファイルが存在しません」を表示し、処理を終了する。
 			if(!file.exists()){
-				System.out.println(FileERROR);
+				System.out.println(fileName + FILE_NOT_EXIST);
 				return false;
 			}
 
@@ -233,13 +226,13 @@ public class CalculateSales {
 				// ※読み込み処理を変更
 				String[] items = line.split(",");
                 //支店/商品定義ファイルの仕様が満たされていない場合、エラーメッセージをコンソールに表示させる。
-				if((items.length != 2) || (!items[0].matches(Code))){
-					System.out.println(CodeERROR);
+				if((items.length != 2) || (!items[0].matches(code))){
+					System.out.println(fileName + FILE_INVALID_FORMAT);
 					return false;
 				}
 			    //Mapに追加する2つの情報を putの引数として指定します。
-				MapNames.put(items[0], items[1]);
-				MapSales.put(items[0], 0L);
+				mapNames.put(items[0], items[1]);
+				mapSales.put(items[0], 0L);
 
 			}
 		} catch(IOException e) {
